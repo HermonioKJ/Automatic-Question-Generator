@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generated Questions</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <style>
+        .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('path-to-your-image/your-image.jpg');
+    background-size: cover;
+    background-position: center;
+    color: #000000;
+    text-align: center;
+        }
+        h1 {
+    color: #000000;
+    padding: 8px 20px;
+    border-radius: 100px;
+    margin-top: 50px;
+    margin-bottom: 20px;
+    display: inline-block;
+    margin-right: 20px; /* Added margin to separate from the toolbar */
+}
+
+nav {
+    background-color: #4F6F52;
+    padding: 10px;
+    border: 0px solid #ccc;
+    
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    margin-right: 10px;
+}
+
+nav a i {
+    margin-right: 5px;
+}
+        h2 {
+            background-color: #86A789;
+            color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        ol {
+            margin: 0 auto;
+            width: 60%;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #E5E1DA;
+            list-style-type: none;
+        }
+        ol li {
+            margin-bottom: 10px;
+        }
+        strong {
+            font-weight: bold;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        ul li {
+            margin-bottom: 5px;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            text-decoration: none;
+            background-color: #4F6F52;
+            color: white;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        /* Hover effect for the button */
+        .back-button:hover {
+            background-color: #2f3e30;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px; /* Adjust the top margin as needed */
+        }
+        .answer-input {
+            width: 80%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        .score-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .score {
+            font-size: 18px;
+            color: #333;
+        }
+        .result-container {
+            margin-top: 30px;
+            text-align: justify;
+        }
+        .individual-score {
+            margin-bottom: 10px;
+        }
+        .choices {
+            margin-left: 90px;
+            text-align: left;
+        }
+    </style>
+    <script>
+        // JavaScript for scoring
+        function checkAnswer(userAnswer, correctAnswer) {
+            return userAnswer.trim().toUpperCase() === correctAnswer.trim().toUpperCase();
+        }
+
+        function displayResults(questionType, questionIndex, userAnswer, correctAnswer) {
+            var resultId = questionType + '_result_' + questionIndex;
+            var resultElement = document.getElementById(resultId);
+
+            if (checkAnswer(userAnswer, correctAnswer)) {
+                resultElement.style.color = 'green'
+                resultElement.innerHTML = 'Correct!';
+            } else {
+                resultElement.style.color = 'red'
+                resultElement.innerHTML = 'Incorrect. Correct answer: ' + correctAnswer;
+            }
+        }
+
+        function updateScore() {
+            var idScore = 0;
+            var mcqScore = 0;
+            var totalScore = 0;
+            var totalQuestions = {{ id_questions|length + mcq_questions|length }};
+
+            // Check Identification Questions
+            {% for id_question in id_questions %}
+                var idUserAnswer = document.getElementById('id_answer_{{loop.index}}').value.trim();
+                var idCorrectAnswer = '{{id_question.answerText}}';
+                displayResults('id', {{loop.index}}, idUserAnswer, idCorrectAnswer);
+
+                if (checkAnswer(idUserAnswer, idCorrectAnswer)) {
+                    idScore += 1;
+                    totalScore += 1;
+                }
+            {% endfor %}
+
+            // Check Multiple Choice Questions
+            {% for mcq_question in mcq_questions %}
+                var mcqUserAnswer = document.getElementById('mcq_answer_{{loop.index}}').value.toUpperCase();
+                var mcqCorrectAnswer = '{{mcq_question.correctChoice}}'; // Assuming you have a correctChoice property
+                displayResults('mcq', {{loop.index}}, mcqUserAnswer, mcqCorrectAnswer);
+
+                if (checkAnswer(mcqUserAnswer, mcqCorrectAnswer)) {
+                    mcqScore += 1;
+                    totalScore += 1;
+                }
+            {% endfor %}
+
+            // Update the score on the page
+            var totalScoreElement = document.getElementById('total_score');
+            totalScoreElement.innerText = 'Your Total Score: ' + totalScore + '/' + totalQuestions;
+
+            // Display individual scores
+            var idScoreElement = document.getElementById('id_score');
+            idScoreElement.innerText = 'Identification Score: ' + idScore + '/' + {{ id_questions|length }};
+
+            var mcqScoreElement = document.getElementById('mcq_score');
+            mcqScoreElement.innerText = 'Multiple Choice Score: ' + mcqScore + '/' + {{ mcq_questions|length }};
+        }
+
+    </script>
+</head>
+<body>
+    <header>
+        <nav>
+            
+            <a href="/"><i class="material-symbols-outlined">home</i> </a>
+            
+        </nav>
+    </header>
+
+
+    <h1>Identification Questions</h1>
+    <ol>
+        {% for id_question in id_questions %}
+            <li>
+                <strong>Question:</strong> {{id_question.questionText}}<br>
+                <input type="text" class="answer-input" id="id_answer_{{loop.index}}" placeholder="Type your answer">
+                <!-- Display result below each question -->
+                <p id="id_result_{{loop.index}}" class="individual-result"></p>
+            </li>
+            <br>
+        {% endfor %}
+    </ol>
+    
+    <h1>Multiple Choice Questions</h1>
+    <ol>
+        {% for mcq_question in mcq_questions %}
+            <li>
+                <strong>Question:</strong> {{ mcq_question.questionText }}<br>
+                <div class="choices">
+                    {% set choices = ['A', 'B', 'C', 'D'] %}
+                    {% for choice in mcq_question.choices %}
+                        {{ choices[loop.index0] }}. {{ choice }}<br>  <!-- Display choices with A, B, C, D -->
+                    {% endfor %}
+                </div>
+                <input type="text" class="answer-input" id="mcq_answer_{{loop.index}}" placeholder="Type your answer (A, B, C, D)">
+                <!-- Display result below each question -->
+                <p id="mcq_result_{{loop.index}}"></p>
+            </li>
+            <br>
+        {% endfor %}
+    </ol>
+    
+
+    <!-- Scoring system -->
+    <div class="score-container">
+        <button onclick="updateScore()">Submit Answers</button>
+        <p class="score" id="id_score">Identification Score: 0/0</p>
+        <p class="score" id="mcq_score">Multiple Choice Score: 0/0</p>
+        <p class="score" id="total_score">Your Total Score: 0/0</p>
+    </div>
+
+
+    <a href="/" class="back-button">Back to Home</a>
+</body>
+</html>

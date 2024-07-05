@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatic Question Generator</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <style>
+
+#loading-dialog {
+            display: none;
+            position: fixed;
+            top: 0%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            width: 50%;
+            height: 100%;
+            text-align: center;
+            z-index: 9999;
+        }
+
+        /* Add styles for the loading circle animation */
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #4F6F52;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('path-to-your-image/your-image.jpg');
+    background-size: cover;
+    background-position: center;
+    color: #000000;
+    text-align: center;
+}
+
+header {
+    background-color: #4F6F52;
+    padding: 5px;
+}
+
+h1 {
+    color: #000000;
+    padding: 8px 20px;
+    border-radius: 100px;
+    margin-top: 50px;
+    margin-bottom: 20px;
+    display: inline-block;
+    margin-right: 20px; /* Added margin to separate from the toolbar */
+}
+
+nav {
+    background-color: #4F6F52;
+    padding: 10px;
+    border: 0px solid #ccc;
+    
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    margin-right: 10px;
+}
+
+nav a i {
+    margin-right: 5px;
+}
+
+form {
+    margin: 20px auto; /* Added margin to create space */
+    width: 50%;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #E5E1DA;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+select,
+input[type="number"],
+textarea,
+input[type="file"],
+input[type="submit"] {
+    width: calc(50% - 18px);
+    padding: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+    background-color: #f6f6f6;
+}
+
+input[type="number"],
+textarea {
+    width: calc(50% - 18px);
+}
+
+input[type="submit"] {
+    width: auto;
+    padding: 8px 20px;
+    margin-bottom: 0;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #4F6F52;
+    color: #fff;
+    transition: background-color 0.3s;
+    font-size: 14px;
+    display: block;
+    margin: 0 auto;
+}
+
+input[type="submit"]:hover {
+    background-color: #2f3e30;
+}
+
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            
+            <a href="/"><i class="material-symbols-outlined">home</i> </a>
+            
+        </nav>
+    </header>
+    <h1>Automatic Question Generator</h1>
+    
+
+    <form id="generateForm" action="/generate" method="POST" enctype="multipart/form-data">
+        <label for="inputType">Input Type:</label>
+        <select id="inputType" name="inputType">
+            <option value="text">Text Input</option>
+            <option value="file">Upload File</option>
+            <option value="jpg">Upload JPG</option> <!-- Added 'jpg' option -->
+            <!-- Add more options if needed -->
+        </select><br><br>
+        
+        <label for="mcqCount">Multiple Choice Questions Count:</label>
+        <input type="number" id="mcqCount" name="mcqCount"><br><br>
+        
+        <label for="idCount">Identificaiton Questions Count:</label>
+        <input type="number" id="idCount" name="idCount"><br><br>
+        
+        <div id="textInputSection" style="display: block;">
+            <label for="textInput">Enter Text:</label>
+            <textarea id="textInput" name="textInput"></textarea><br><br>
+        </div>
+        
+        <div id="fileInputSection" style="display: none;">
+            <label for="fileInput">Upload Text File:</label>
+            <input type="file" id="fileInput" name="fileInput" accept=".txt"><br><br>
+        </div>
+
+        <div id="jpgInputSection" style="display: none;">
+            <label for="jpgInput">Upload JPG:</label>
+            <input type="file" id="jpgInput" name="jpgInput" accept="image/jpeg, image/png"><br><br>
+        </div>
+        <strong>{{ error_message }}</strong>
+        
+        <input type="submit" value="Generate Questions">
+    </form>
+    <div id="loading-dialog">
+        <div class="loader"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script>
+        document.getElementById('generateForm').addEventListener('submit', function() {
+            // Show loading dialog when form is submitted
+            document.getElementById('loading-dialog').style.display = 'block';
+        });
+
+        document.getElementById('inputType').addEventListener('change', function() {
+            var textInputSection = document.getElementById('textInputSection');
+            var fileInputSection = document.getElementById('fileInputSection');
+            var jpgInputSection = document.getElementById('jpgInputSection');
+            
+            if (this.value === 'text') {
+                textInputSection.style.display = 'block';
+                fileInputSection.style.display = 'none';
+                jpgInputSection.style.display = 'none';
+            } else if (this.value === 'file') {
+                textInputSection.style.display = 'none';
+                fileInputSection.style.display = 'block';
+                jpgInputSection.style.display = 'none';
+            } else if (this.value === 'jpg') {
+                textInputSection.style.display = 'none';
+                fileInputSection.style.display = 'none';
+                jpgInputSection.style.display = 'block';
+            } else {
+                textInputSection.style.display = 'none';
+                fileInputSection.style.display = 'none';
+                jpgInputSection.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
